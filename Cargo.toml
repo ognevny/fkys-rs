@@ -1,0 +1,17 @@
+[package]
+name = "fkys-rs"
+version = "0.0.0"
+edition = "2021"
+license = "WTFPL"
+description = "F*cking Kill Yourself lang interpreter written in Rust"
+authors = ["Maksim Bondarenkov"]
+repository = "https://github.com/ognevnydemon/fkys-rs"
+readme = "README.md"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+[[bin]]
+name = "fkysoxide"
+path = "src/main.rs" 
