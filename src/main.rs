@@ -50,7 +50,7 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn eval<W: Write>(char: char, handle: &io::BufWriter<W>) -> Result<()> {
+fn eval<W: Write>(char: char, handle: &mut io::BufWriter<W>) -> Result<()> {
     let (mut arr, mut pointer, mut int_mode) = (
         ARRAY.lock().unwrap(),
         POINTER.lock().unwrap(),
