@@ -29,4 +29,3 @@ jobs:
         run: cargo fmt -- --check ; cargo clippy -- -D warnings
       - name: test
         run: ./.ci/test.sh
-        
