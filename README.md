@@ -21,7 +21,8 @@ i - integer output mode (enabled by default)
 c - character output mode
 n - newline
 o - prints the contents of the cell to the console
-p - accepts input from the user into the cell 
+p - accepts input from the user into the cell
+[] - loop (runs while the cell != 0)
 ```
 tabs, spaces and other symbols are just ignored (but commenting isn't supported now)
 
