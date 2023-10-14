@@ -1,3 +1,12 @@
+<p align="center">
+  <a title="GitHub Actions" href="https://github.com/ognevnydemon/fkys-rs/actions"><img alt="workflow Status" src="https://img.shields.io/github/actions/workflow/status/ognevnydemon/fkys-rs/ci.yml?branch=master&longCache=true&style=flat-square&label=build&logo=github"></a><!--
+  -->
+  <a title="Crate" href="https://crates.io/crates/fkys-rs"><img src="https://img.shields.io/crates/v/fkys-rs.svg?style=flat-square"></a><!--
+  -->
+  <a title="WTFPL license" href="https://github.com/ognevnydemon/fkys-rs/blob/master/LICENSE"><img src="https://img.shields.io/badge/License-WTFPL-red.svg?style=flat-square"></a><!--
+  -->
+</p>
+
 # FKYSoxide
 this is a [F*cking Kill Yourself lang](https://github.com/eleoelo/fkys) interpretter, independently
 rewritten in Rust.
