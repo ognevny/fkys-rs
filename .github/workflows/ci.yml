@@ -24,7 +24,7 @@ jobs:
           rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
           rustup component add rustfmt clippy
       - name: build
-        run: cargo -b -v
+        run: cargo b -v
       - name: fmt and clippy check
         run: cargo fmt -- --check ; cargo clippy -- -D warnings
       - name: test
