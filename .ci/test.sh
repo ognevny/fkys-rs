@@ -5,3 +5,5 @@ if [[ $output != "Hello, world!" ]]; then
     echo "failed with $output"
     exit 1
 fi
+
+echo "$output"
