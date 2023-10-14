@@ -19,6 +19,7 @@ struct Args {
 
 fn main() -> Result<()> {
     let args = Args::parse();
+    let mut handle = io::BufWriter::new(io::stdout());
 
     let (mut code, mut collecting_code) = (String::new(), false);
     for char in fs::read_to_string(&args.path)
@@ -31,7 +32,7 @@ fn main() -> Result<()> {
             collecting_code = false;
             loop {
                 for char in code.chars() {
-                    eval(char)?;
+                    eval(char, &handle)?;
                 }
                 if ARRAY.lock().unwrap()[*POINTER.lock().unwrap()] == 0 {
                     break;
@@ -41,7 +42,7 @@ fn main() -> Result<()> {
         }
 
         if !collecting_code {
-            eval(char)?;
+            eval(char, &handle)?;
         } else {
             code.push(char);
         }
@@ -49,10 +50,7 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn eval(char: char) -> Result<()> {
-    let stdout = io::stdout();
-    let mut handle = io::BufWriter::new(stdout);
-
+fn eval(char: char, handle: &BufWriter) -> Result<()> {
     let (mut arr, mut pointer, mut int_mode) = (
         ARRAY.lock().unwrap(),
         POINTER.lock().unwrap(),
@@ -70,9 +68,9 @@ fn eval(char: char) -> Result<()> {
         '-' => arr[*pointer] -= 1,
         'o' => {
             if *int_mode {
-                write!(handle, "{}", arr[*pointer])?;
+                write!(*handle, "{}", arr[*pointer])?;
             } else if arr[*pointer] >= 0 {
-                write!(handle, "{}", arr[*pointer] as u8 as char)?;
+                write!(*handle, "{}", arr[*pointer] as u8 as char)?;
             }
         }
         'p' => {
@@ -80,8 +78,8 @@ fn eval(char: char) -> Result<()> {
             io::stdin().read_line(&mut user_input)?;
             arr[*pointer] = user_input.trim_end().parse()?;
         }
-        'n' => writeln!(handle)?,
-        's' => write!(handle, " ")?,
+        'n' => writeln!(*handle)?,
+        's' => write!(*handle, " ")?,
         'i' => *int_mode = true,
         'c' => *int_mode = false,
         _ => (),
