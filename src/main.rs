@@ -32,7 +32,7 @@ fn main() -> Result<()> {
             collecting_code = false;
             loop {
                 for char in code.chars() {
-                    eval(char, &handle)?;
+                    eval(char, &mut handle)?;
                 }
                 if ARRAY.lock().unwrap()[*POINTER.lock().unwrap()] == 0 {
                     break;
@@ -42,7 +42,7 @@ fn main() -> Result<()> {
         }
 
         if !collecting_code {
-            eval(char, &handle)?;
+            eval(char, &mut handle)?;
         } else {
             code.push(char);
         }
