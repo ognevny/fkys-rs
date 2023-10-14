@@ -13,15 +13,18 @@ rewritten in Rust.
 
 ## Syntax
 ```
+e - exit programm
 > - moves pointer right
 < - moves pointer left
 + - increments cell
 - - decrements cell
 i - integer output mode (enabled by default)
 c - character output mode
-n - newline
+n - inserts newline
+s - inserts space
 o - prints the contents of the cell to the console
 p - accepts input from the user into the cell
+l - sets cell value to 125
 [] - loop (runs while the cell != 0)
 ```
 tabs, spaces and other symbols are just ignored (but commenting isn't supported now)

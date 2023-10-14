@@ -26,19 +26,22 @@ fn main() -> Result<()> {
         .with_context(|| format!("could not read file `{}`", &args.path.to_string_lossy()))?
         .chars()
     {
-        if char == '[' {
-            collecting_code = true
-        } else if char == ']' {
-            collecting_code = false;
-            loop {
-                for char in code.chars() {
-                    eval(char, &mut handle)?;
+        match char {
+            'e' => std::process::exit(0),
+            '[' => collecting_code = true,
+            ']' => {
+                collecting_code = false;
+                loop {
+                    for char in code.chars() {
+                        eval(char, &mut handle)?;
+                    }
+                    if ARRAY.lock().unwrap()[*POINTER.lock().unwrap()] == 0 {
+                        break;
+                    }
                 }
-                if ARRAY.lock().unwrap()[*POINTER.lock().unwrap()] == 0 {
-                    break;
-                }
+                code.clear();
             }
-            code.clear();
+            _ => (),
         }
 
         if !collecting_code {
@@ -80,6 +83,7 @@ fn eval<W: Write>(char: char, handle: &mut io::BufWriter<W>) -> Result<()> {
         }
         'n' => writeln!(*handle)?,
         's' => write!(*handle, " ")?,
+        'l' => arr[*pointer] = 125,
         'i' => *int_mode = true,
         'c' => *int_mode = false,
         _ => (),
