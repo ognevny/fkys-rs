@@ -3,14 +3,10 @@ use clap::Parser;
 use std::{
     fs,
     io::{self, Write},
-    sync::Mutex,
 };
-
-lazy_static::lazy_static! {
-    static ref ARRAY: Mutex<[i32; 500]> = Mutex::new([0; 500]);
-    static ref POINTER: Mutex<usize> = Mutex::new(0);
-    static ref INT_MODE: Mutex<bool> = Mutex::new(true);
-}
+static mut ARRAY: [i32; 500] = [0; 500];
+static mut POINTER: usize = 0;
+static mut INT_MODE: bool = true;
 
 #[derive(Parser)]
 struct Args {
@@ -29,23 +25,23 @@ fn main() -> Result<()> {
         match char {
             'e' => std::process::exit(0),
             '[' => collecting_code = true,
-            ']' => {
+            ']' => unsafe {
                 collecting_code = false;
                 loop {
                     for char in code.chars() {
                         eval(char, &mut handle)?;
                     }
-                    if ARRAY.lock().unwrap()[*POINTER.lock().unwrap()] == 0 {
+                    if ARRAY[POINTER] == 0 {
                         break;
                     }
                 }
                 code.clear();
-            }
+            },
             _ => (),
         }
 
         if !collecting_code {
-            eval(char, &mut handle)?;
+            unsafe { eval(char, &mut handle) }?;
         } else {
             code.push(char);
         }
@@ -53,39 +49,36 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn eval<W: Write>(char: char, handle: &mut io::BufWriter<W>) -> Result<()> {
-    let (mut arr, mut pointer, mut int_mode) = (
-        ARRAY.lock().unwrap(),
-        POINTER.lock().unwrap(),
-        INT_MODE.lock().unwrap(),
-    );
+// SAFETY: this is a single thread synced operation, so it's impossible to access the same data
+// twice at the same time
+unsafe fn eval<W: Write>(char: char, handle: &mut io::BufWriter<W>) -> Result<()> {
     match char {
-        '>' => *pointer = (*pointer + 1) % 500,
+        '>' => POINTER = (POINTER + 1) % 500,
         '<' => {
-            if *pointer == 0 {
-                *pointer = 500;
+            if POINTER == 0 {
+                POINTER = 500;
             }
-            *pointer -= 1;
+            POINTER -= 1;
         }
-        '+' => arr[*pointer] += 1,
-        '-' => arr[*pointer] -= 1,
+        '+' => ARRAY[POINTER] += 1,
+        '-' => ARRAY[POINTER] -= 1,
         'o' => {
-            if *int_mode {
-                write!(*handle, "{}", arr[*pointer])?;
-            } else if arr[*pointer] >= 0 {
-                write!(*handle, "{}", arr[*pointer] as u8 as char)?;
+            if INT_MODE {
+                write!(*handle, "{}", ARRAY[POINTER])?;
+            } else if ARRAY[POINTER] >= 0 {
+                write!(*handle, "{}", ARRAY[POINTER] as u8 as char)?;
             }
         }
         'p' => {
             let mut user_input = String::new();
             io::stdin().read_line(&mut user_input)?;
-            arr[*pointer] = user_input.trim_end().parse()?;
+            ARRAY[POINTER] = user_input.trim_end().parse()?;
         }
         'n' => writeln!(*handle)?,
         's' => write!(*handle, " ")?,
-        'l' => arr[*pointer] = 125,
-        'i' => *int_mode = true,
-        'c' => *int_mode = false,
+        'l' => ARRAY[POINTER] = 125,
+        'i' => INT_MODE = true,
+        'c' => INT_MODE = false,
         _ => (),
     }
     Ok(())
