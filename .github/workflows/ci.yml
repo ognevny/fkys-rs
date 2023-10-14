@@ -28,5 +28,5 @@ jobs:
       - name: fmt and clippy check
         run: cargo fmt -- --check ; cargo clippy -- -D warnings
       - name: test
-        run: bash ./.ci/test.sh
+        run: ./.ci/test.sh
         
