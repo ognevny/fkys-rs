@@ -1,8 +1,8 @@
 use anyhow::{Context, Result};
 use clap::Parser;
 use std::{
-    fs,
-    io::{self, Write},
+    fs::File,
+    io::{self, BufRead, BufReader, BufWriter, Write},
 };
 static mut ARRAY: [i32; 500] = [0; 500];
 static mut POINTER: usize = 0;
@@ -15,43 +15,50 @@ struct Args {
 
 fn main() -> Result<()> {
     let args = Args::parse();
-    let mut handle = io::BufWriter::new(io::stdout());
+    let (mut handle, reader) =
+        (
+            BufWriter::new(io::stdout()),
+            BufReader::new(File::open(&args.path).with_context(|| {
+                format!("Could not read file `{}`", &args.path.to_string_lossy())
+            })?),
+        );
 
     let (mut code, mut collecting_code) = (String::new(), false);
-    for char in fs::read_to_string(&args.path)
-        .with_context(|| format!("could not read file `{}`", &args.path.to_string_lossy()))?
-        .chars()
-    {
-        match char {
-            'e' => std::process::exit(0),
-            '[' => collecting_code = true,
-            ']' => unsafe {
-                collecting_code = false;
-                loop {
-                    for char in code.chars() {
-                        eval(char, &mut handle)?;
+    for line in reader.lines() {
+        for char in line?.chars() {
+            match char {
+                '#' => break,
+                'e' => std::process::exit(0),
+                '[' => collecting_code = true,
+                ']' => unsafe {
+                    collecting_code = false;
+                    loop {
+                        for char in code.chars() {
+                            eval(char, &mut handle)?;
+                        }
+                        if ARRAY[POINTER] == 0 {
+                            break;
+                        }
                     }
-                    if ARRAY[POINTER] == 0 {
-                        break;
-                    }
-                }
-                code.clear();
-            },
-            _ => (),
-        }
+                    code.clear();
+                },
+                _ => (),
+            }
 
-        if !collecting_code {
-            unsafe { eval(char, &mut handle) }?;
-        } else {
-            code.push(char);
+            if !collecting_code {
+                unsafe { eval(char, &mut handle) }?;
+            } else {
+                code.push(char);
+            }
         }
     }
+    handle.flush()?;
     Ok(())
 }
 
-// SAFETY: this is a single thread synced operation, so it's impossible to access the same data
+// SAFETY: all of this is a single thread operation, so it's impossible to access the same data
 // twice at the same time
-unsafe fn eval<W: Write>(char: char, handle: &mut io::BufWriter<W>) -> Result<()> {
+unsafe fn eval<W: ?Sized + Write>(char: char, handle: &mut BufWriter<W>) -> Result<()> {
     match char {
         '>' => POINTER = (POINTER + 1) % 500,
         '<' => {
