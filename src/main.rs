@@ -73,7 +73,7 @@ unsafe fn eval<W: ?Sized + Write>(char: char, handle: &mut BufWriter<W>) -> Resu
             if INT_MODE {
                 write!(*handle, "{}", ARRAY[POINTER])?;
             } else if ARRAY[POINTER] >= 0 {
-                write!(*handle, "{}", ARRAY[POINTER] as u8 as char)?;
+                write!(*handle, "{}", char::from_u32(ARRAY[POINTER] as u32).unwrap())?;
             }
         }
         'p' => {
