@@ -30,4 +30,4 @@ jobs:
       - name: test
         run: |
           chmod +x ./.ci/test.sh
-          ./.ci/test.sh
+          cargo t
