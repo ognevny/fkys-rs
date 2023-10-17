@@ -4,6 +4,6 @@ fn hw() {
         .arg("./.ci/test.sh")
         .status()
         .expect("failed to execute");
-    
+
     assert!(stat.success())
 }
