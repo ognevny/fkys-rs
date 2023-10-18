@@ -28,6 +28,4 @@ jobs:
       - name: fmt and clippy check
         run: cargo fmt -- --check ; cargo clippy -- -D warnings
       - name: test
-        run: |
-          chmod +x ./.ci/test.sh
-          cargo t
+        run: cargo t --test '*'
