@@ -26,6 +26,7 @@ jobs:
       - name: build
         run: cargo b -v
       - name: fmt and clippy check
+        if: ${{ matrix.toolchain == 'nightly' }}
         run: cargo fmt -- --check ; cargo clippy -- -D warnings
       - name: test
         run: cargo t --test '*'

@@ -15,16 +15,15 @@ struct Args {
 
 fn main() -> Result<()> {
     let args = Args::parse();
-    let (mut handle, reader) =
-        (
-            BufWriter::new(io::stdout()),
-            BufReader::new(File::open(&args.path).with_context(|| {
-                format!("Could not read file `{}`", &args.path.to_string_lossy())
-            })?),
-        );
+    let (mut code, mut collecting_code, mut handle) =
+        (String::new(), false, BufWriter::new(io::stdout()));
 
-    let (mut code, mut collecting_code) = (String::new(), false);
-    for line in reader.lines() {
+    for line in BufReader::new(
+        File::open(&args.path)
+            .with_context(|| format!("Could not read file `{}`", &args.path.to_string_lossy()))?,
+    )
+    .lines()
+    {
         for char in line?.chars() {
             match char {
                 '#' => break,
@@ -66,10 +65,10 @@ unsafe fn eval<W: ?Sized + Write>(char: char, handle: &mut BufWriter<W>) -> Resu
                 POINTER = 500;
             }
             POINTER -= 1;
-        }
+        },
         '+' => ARRAY[POINTER] += 1,
         '-' => ARRAY[POINTER] -= 1,
-        'o' => {
+        'o' =>
             if INT_MODE {
                 write!(*handle, "{}", ARRAY[POINTER])?;
             } else if ARRAY[POINTER] >= 0 {
@@ -78,13 +77,12 @@ unsafe fn eval<W: ?Sized + Write>(char: char, handle: &mut BufWriter<W>) -> Resu
                     "{}",
                     char::from_u32(ARRAY[POINTER] as u32).unwrap()
                 )?;
-            }
-        }
+            },
         'p' => {
             let mut user_input = String::new();
             io::stdin().read_line(&mut user_input)?;
             ARRAY[POINTER] = user_input.trim_end().parse()?;
-        }
+        },
         'n' => writeln!(*handle)?,
         's' => write!(*handle, " ")?,
         'l' => ARRAY[POINTER] = 125,
