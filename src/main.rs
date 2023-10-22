@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use clap::Parser;
 use std::{
     fs::File,
-    io::{self, BufRead, BufReader, BufWriter, Write},
+    io::{self, BufRead, BufReader, Write},
 };
 static mut ARRAY: [i32; 500] = [0; 500];
 static mut POINTER: usize = 0;
@@ -14,9 +14,8 @@ struct Args {
 }
 
 fn main() -> Result<()> {
-    let args = Args::parse();
-    let (mut code, mut collecting_code, mut handle) =
-        (String::new(), false, BufWriter::new(io::stdout()));
+    let (args, mut handle, mut code, mut collecting_code) =
+        (Args::parse(), io::stdout().lock(), String::new(), false);
 
     for line in BufReader::new(
         File::open(&args.path)
@@ -57,7 +56,7 @@ fn main() -> Result<()> {
 
 // SAFETY: all of this is a single thread operation, so it's impossible to access the same data
 // twice at the same time
-unsafe fn eval<W: ?Sized + Write>(char: char, handle: &mut BufWriter<W>) -> Result<()> {
+unsafe fn eval<W: ?Sized + Write>(char: char, handle: &mut W) -> Result<()> {
     match char {
         '>' => POINTER = (POINTER + 1) % 500,
         '<' => {
