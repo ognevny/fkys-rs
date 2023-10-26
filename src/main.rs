@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use clap::Parser;
 use std::{
     fs::File,
-    io::{self, BufRead, BufReader, Write},
+    io::{self, BufRead, BufReader, BufWriter, Write},
 };
 static mut ARRAY: [i32; 500] = [0; 500];
 static mut POINTER: usize = 0;
@@ -14,9 +14,12 @@ struct Args {
 }
 
 fn main() -> Result<()> {
-    let (args, mut handle, mut code, mut collecting_code) =
-        (Args::parse(), io::stdout().lock(), String::new(), false);
-
+    let (args, mut handle, mut code, mut collecting_code) = (
+        Args::parse(),
+        BufWriter::new(io::stdout()),
+        String::new(),
+        false,
+    );
     for line in BufReader::new(
         File::open(&args.path)
             .with_context(|| format!("Could not read file `{}`", &args.path.to_string_lossy()))?,
