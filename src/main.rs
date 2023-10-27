@@ -2,8 +2,11 @@ use anyhow::{Context, Result};
 use clap::Parser;
 use std::{
     fs::File,
-    io::{self, BufRead, BufReader, BufWriter, Write},
+    io::{self, prelude::*, BufReader, BufWriter},
 };
+
+// SAFETY: all of this is a single thread operation, so it's impossible to access the same data
+// twice at the same time
 static mut ARRAY: [i32; 500] = [0; 500];
 static mut POINTER: usize = 0;
 static mut INT_MODE: bool = true;
@@ -14,7 +17,7 @@ struct Args {
 }
 
 fn main() -> Result<()> {
-    let (args, mut handle, mut code, mut collecting_code) = (
+    let (args, mut handle, mut code, mut collecting) = (
         Args::parse(),
         BufWriter::new(io::stdout()),
         String::new(),
@@ -30,9 +33,9 @@ fn main() -> Result<()> {
             match char {
                 '#' => break,
                 'e' => std::process::exit(0),
-                '[' => collecting_code = true,
+                '[' => collecting = true,
                 ']' => unsafe {
-                    collecting_code = false;
+                    collecting = false;
                     loop {
                         for char in code.chars() {
                             eval(char, &mut handle)?;
@@ -46,8 +49,8 @@ fn main() -> Result<()> {
                 _ => (),
             }
 
-            if !collecting_code {
-                unsafe { eval(char, &mut handle) }?;
+            if !collecting {
+                eval(char, &mut handle)?;
             } else {
                 code.push(char);
             }
@@ -57,20 +60,18 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-// SAFETY: all of this is a single thread operation, so it's impossible to access the same data
-// twice at the same time
-unsafe fn eval<W: ?Sized + Write>(char: char, handle: &mut W) -> Result<()> {
+fn eval<W: ?Sized + Write>(char: char, handle: &mut W) -> Result<()> {
     match char {
-        '>' => POINTER = (POINTER + 1) % 500,
-        '<' => {
+        '>' => unsafe { POINTER = (POINTER + 1) % 500 },
+        '<' => unsafe {
             if POINTER == 0 {
                 POINTER = 500;
             }
             POINTER -= 1;
         },
-        '+' => ARRAY[POINTER] += 1,
-        '-' => ARRAY[POINTER] -= 1,
-        'o' =>
+        '+' => unsafe { ARRAY[POINTER] += 1 },
+        '-' => unsafe { ARRAY[POINTER] -= 1 },
+        'o' => unsafe {
             if INT_MODE {
                 write!(*handle, "{}", ARRAY[POINTER])?;
             } else if ARRAY[POINTER] >= 0 {
@@ -79,17 +80,18 @@ unsafe fn eval<W: ?Sized + Write>(char: char, handle: &mut W) -> Result<()> {
                     "{}",
                     char::from_u32(ARRAY[POINTER] as u32).unwrap()
                 )?;
-            },
-        'p' => {
+            }
+        },
+        'p' => unsafe {
             let mut user_input = String::new();
             io::stdin().read_line(&mut user_input)?;
             ARRAY[POINTER] = user_input.trim_end().parse()?;
         },
-        'n' => writeln!(*handle)?,
-        's' => write!(*handle, " ")?,
-        'l' => ARRAY[POINTER] = 125,
-        'i' => INT_MODE = true,
-        'c' => INT_MODE = false,
+        'n' => handle.write_all(b"\n")?,
+        's' => handle.write_all(b" ")?,
+        'l' => unsafe { ARRAY[POINTER] = 125 },
+        'i' => unsafe { INT_MODE = true },
+        'c' => unsafe { INT_MODE = false },
         _ => (),
     }
     Ok(())
