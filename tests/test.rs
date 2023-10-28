@@ -1,5 +1,5 @@
 #[test]
-fn hw() {
+fn scripts() {
     let stat = std::process::Command::new("sh")
         .arg("./.ci/test.sh")
         .status()
