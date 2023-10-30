@@ -1,8 +1,10 @@
-use anyhow::{Context, Result};
-use clap::Parser;
-use std::{
-    fs::File,
-    io::{self, prelude::*, BufReader, BufWriter},
+use {
+    anyhow::{Context, Result},
+    clap::Parser,
+    std::{
+        fs::File,
+        io::{self, prelude::*, BufReader, BufWriter},
+    },
 };
 
 // SAFETY: all of this is a single thread operation, so it's impossible to access the same data
