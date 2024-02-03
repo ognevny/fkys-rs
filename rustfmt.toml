@@ -1,7 +1,8 @@
+edition = "2021"
 max_width = 100
-array_width = 92
+use_small_heuristics = "Max"
 tab_spaces = 4
-newline_style = "unix"          # f*** windows style
+newline_style = "Unix"
 reorder_imports = true
 use_field_init_shorthand = true
 use_try_shorthand = true
@@ -9,14 +10,20 @@ match_block_trailing_comma = true
 
 # they seem to be stable in nearest future, but for now we use it only for nightly CI check
 unstable_features = true
+version = "Two"
 condense_wildcard_suffixes = true
 comment_width = 100
+doc_comment_code_block_width = 100
 format_code_in_doc_comments = true
 format_macro_bodies = true
 format_macro_matchers = true
 format_strings = true
 fn_single_line = true
+overflow_delimited_expr = true
+reorder_impl_items = true
 imports_granularity = "One"
+inline_attribute_width = 100
 match_arm_blocks = false
 normalize_comments = true
+where_single_line = true
 wrap_comments = true

@@ -19,12 +19,8 @@ struct Args {
 }
 
 fn main() -> Result<()> {
-    let (args, mut handle, mut code, mut collecting) = (
-        Args::parse(),
-        BufWriter::new(io::stdout()),
-        String::new(),
-        false,
-    );
+    let (args, mut handle, mut code, mut collecting) =
+        (Args::parse(), BufWriter::new(io::stdout()), String::new(), false);
     for line in BufReader::new(
         File::open(&args.path)
             .with_context(|| format!("Could not read file `{}`", &args.path.to_string_lossy()))?,
@@ -77,11 +73,7 @@ fn eval<W: ?Sized + Write>(char: char, handle: &mut W) -> Result<()> {
             if INT_MODE {
                 write!(*handle, "{}", ARRAY[POINTER])?;
             } else if ARRAY[POINTER] >= 0 {
-                write!(
-                    *handle,
-                    "{}",
-                    char::from_u32(ARRAY[POINTER] as u32).unwrap()
-                )?;
+                write!(*handle, "{}", char::from_u32(ARRAY[POINTER] as u32).unwrap())?;
             }
         },
         'p' => unsafe {
