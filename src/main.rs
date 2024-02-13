@@ -7,8 +7,6 @@ use {
     },
 };
 
-// SAFETY: all of this is a single thread operation, so it's impossible to access the same data
-// twice at the same time
 static mut ARRAY: [i32; 500] = [0; 500];
 static mut POINTER: usize = 0;
 static mut INT_MODE: bool = true;
@@ -47,10 +45,10 @@ fn main() -> Result<()> {
                 _ => (),
             }
 
-            if !collecting {
-                eval(char, &mut handle)?;
-            } else {
+            if collecting {
                 code.push(char);
+            } else {
+                eval(char, &mut handle)?;
             }
         }
     }
