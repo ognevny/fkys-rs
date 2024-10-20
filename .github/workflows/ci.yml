@@ -2,13 +2,13 @@ name: CI
 
 on:
   push:
-    paths: ['**.rs', '**.toml', '**.lock', '**/ci.yml', '**/test.sh']
+    paths: ["**.rs", "**.toml", "**.lock", "**/ci.yml", "**/test.sh"]
   pull_request:
-    paths: ['**.rs', '**.toml', '**.lock', '**/ci.yml', '**/test.sh']
+    paths: ["**.rs", "**.toml", "**.lock", "**/ci.yml", "**/test.sh"]
 
 env:
   CARGO_TERM_COLOR: always
-  RUSTFLAGS: '-C target-cpu=native'
+  RUSTFLAGS: "-Ctarget-cpu=native"
 
 jobs:
   build_and_test:
@@ -25,11 +25,11 @@ jobs:
           rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
           rustup component add rustfmt clippy
       - name: build
-        run: cargo b -v --locked
+        run: cargo b -v --locked --features "cli"
       - name: fmt and clippy check
         if: ${{ matrix.toolchain == 'nightly' }}
         run: |
           cargo fmt -- --check
           cargo clippy --locked -- -D warnings
       - name: test
-        run: cargo t --locked --test '*'
+        run: cargo t --locked --test '*' --features "cli"
