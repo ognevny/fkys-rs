@@ -26,6 +26,6 @@ fn main() -> Result<()> {
 
     eval(&script, &mut handle)?;
 
-    handle.flush().unwrap_or_else(|| println!("Error: no stdout shown"));
+    handle.flush().unwrap_or_else(|_| println!("Error: no stdout shown"));
     Ok(())
 }
