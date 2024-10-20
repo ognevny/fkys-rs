@@ -1,90 +1,31 @@
+//! A CLI for interpreting FKYS script
+
 use {
-    anyhow::{Context, Result},
+    anyhow::Result,
     clap::Parser,
+    fkys_rs::eval,
     std::{
-        fs::File,
-        io::{self, prelude::*, BufReader, BufWriter},
+        fs::read_to_string,
+        io::{BufWriter, Write as _, stdout},
+        path::PathBuf,
     },
 };
 
-static mut ARRAY: [i32; 500] = [0; 500];
-static mut POINTER: usize = 0;
-static mut INT_MODE: bool = true;
-
+/// Arguments passed to interpreter.
+///
+/// Currently only path to script
 #[derive(Parser)]
 struct Args {
-    path: std::path::PathBuf,
+    /// Path to script
+    path: PathBuf,
 }
 
 fn main() -> Result<()> {
-    let (args, mut handle, mut code, mut collecting) =
-        (Args::parse(), BufWriter::new(io::stdout()), String::new(), false);
-    for line in BufReader::new(
-        File::open(&args.path)
-            .with_context(|| format!("Could not read file `{}`", &args.path.to_string_lossy()))?,
-    )
-    .lines()
-    {
-        for char in line?.chars() {
-            match char {
-                '#' => break,
-                'e' => std::process::exit(0),
-                '[' => collecting = true,
-                ']' => unsafe {
-                    collecting = false;
-                    loop {
-                        for char in code.chars() {
-                            eval(char, &mut handle)?;
-                        }
-                        if ARRAY[POINTER] == 0 {
-                            break;
-                        }
-                    }
-                    code.clear();
-                },
-                _ => (),
-            }
+    let (args, mut handle) = (Args::parse(), BufWriter::new(stdout()));
+    let script = read_to_string(args.path)?;
 
-            if collecting {
-                code.push(char);
-            } else {
-                eval(char, &mut handle)?;
-            }
-        }
-    }
-    handle.flush()?;
-    Ok(())
-}
+    eval(&script, &mut handle)?;
 
-fn eval<W: ?Sized + Write>(char: char, handle: &mut W) -> Result<()> {
-    match char {
-        '>' => unsafe { POINTER = (POINTER + 1) % 500 },
-        '<' => unsafe {
-            if POINTER == 0 {
-                POINTER = 500;
-            }
-            POINTER -= 1;
-        },
-        '+' => unsafe { ARRAY[POINTER] += 1 },
-        '-' => unsafe { ARRAY[POINTER] -= 1 },
-        'o' => unsafe {
-            if INT_MODE {
-                write!(*handle, "{}", ARRAY[POINTER])?;
-            } else if ARRAY[POINTER] >= 0 {
-                write!(*handle, "{}", char::from_u32(ARRAY[POINTER] as u32).unwrap())?;
-            }
-        },
-        'p' => unsafe {
-            let mut user_input = String::new();
-            io::stdin().read_line(&mut user_input)?;
-            ARRAY[POINTER] = user_input.trim_end().parse()?;
-        },
-        'n' => handle.write_all(b"\n")?,
-        's' => handle.write_all(b" ")?,
-        'l' => unsafe { ARRAY[POINTER] = 125 },
-        'i' => unsafe { INT_MODE = true },
-        'c' => unsafe { INT_MODE = false },
-        _ => (),
-    }
+    handle.flush().unwrap_or_else(|| println!("Error: no stdout shown"));
     Ok(())
 }
