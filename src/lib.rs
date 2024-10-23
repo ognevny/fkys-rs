@@ -7,9 +7,26 @@ use {
 
 /// Evaluate a script.
 ///
+/// A string slice and a handle is passed. Handle must implement [`std::io::Write`] trait. It can be
+/// a [`Stdout`].
+///
 /// # Errors
 ///
-/// Fails if `eval_char` returns `Err()`
+/// Fails if there is a error while evaluating a single char.
+///
+/// ```no_run
+/// use {
+///     fkys_rs::eval,
+///     std::io::{BufWriter, stdout},
+/// };
+///
+/// let mut handle = BufWriter::new(stdout());
+/// eval(
+///     r"++++++++++++++++++++++++++++++++++++++++++++++os # number bam-bam
+/// ---------------os+++++++++++++o",
+///     &mut handle,
+/// ); // writes `46 31 44` into handle
+/// ```
 pub fn eval<W: ?Sized + Write>(script: &str, handle: &mut W) -> Result<()> {
     let (mut code, mut collecting, mut arr, mut pointer, mut int_mode) =
         (String::new(), false, [0; 500], 0, true);

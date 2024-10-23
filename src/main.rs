@@ -1,7 +1,7 @@
 //! A CLI for interpreting FKYS script
 
 use {
-    anyhow::Result,
+    anyhow::{Result, bail},
     clap::Parser,
     fkys_rs::eval,
     std::{
@@ -13,16 +13,26 @@ use {
 
 /// Arguments passed to interpreter.
 ///
-/// Currently only path to script
+/// There is 2 variants: path to script or script itself (with -c option).
 #[derive(Parser)]
+#[clap(about, version, long_about = None)]
 struct Args {
     /// Path to script
-    path: PathBuf,
+    #[clap(value_name = "FILE")]
+    path: Option<PathBuf>,
+
+    /// A script to evaluate
+    #[clap(short, long, value_name = "COMMAND")]
+    command: Option<String>,
 }
 
 fn main() -> Result<()> {
     let (args, mut handle) = (Args::parse(), BufWriter::new(stdout()));
-    let script = read_to_string(args.path)?;
+    let script = match (args.path, args.command) {
+        (Some(_), Some(_)) | (None, None) => bail!("only one option must be specified"),
+        (Some(path), None) => read_to_string(path)?,
+        (None, Some(command)) => command,
+    };
 
     eval(&script, &mut handle)?;
 
