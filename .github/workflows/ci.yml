@@ -32,4 +32,4 @@ jobs:
           cargo fmt -- --check
           cargo clippy --locked -- -D warnings
       - name: test
-        run: cargo t --locked --test '*' --features "cli"
+        run: cargo t --locked --features "cli"
