@@ -101,7 +101,7 @@ pub fn eval_char<W: ?Sized + Write>(
         '>' => {
             *pointer = (*pointer + 1) % 500;
             if is_interactive {
-                write!(*handle, "Now at {}", *pointer)?;
+                write!(*handle, "> Now at {}", *pointer)?;
             }
         },
         '<' => {
@@ -110,54 +110,54 @@ pub fn eval_char<W: ?Sized + Write>(
             }
             *pointer -= 1;
             if is_interactive {
-                write!(*handle, "Now at {}", *pointer)?;
+                write!(*handle, "> Now at {}", *pointer)?;
             }
         },
         '+' => {
             arr[*pointer] += 1;
             if is_interactive {
-                write!(*handle, "{}", arr[*pointer])?;
+                write!(*handle, "> {}", arr[*pointer])?;
             }
         },
         '-' => {
             arr[*pointer] -= 1;
             if is_interactive {
-                write!(*handle, "{}", arr[*pointer])?;
+                write!(*handle, "> {}", arr[*pointer])?;
             }
         },
         'o' =>
             if *int_mode {
                 write!(*handle, "{}", arr[*pointer])?;
             } else {
-                write!(*handle, "{}", char::from_u32(arr[*pointer].unsigned_abs()).unwrap())?;
+                write!(*handle, "{}", char::from_u32(arr[*pointer].unsigned_abs()).unwrap_or(' '))?;
             },
         'p' => {
             let mut user_input = String::new();
             stdin().read_line(&mut user_input)?;
             arr[*pointer] = user_input.trim_end().parse()?;
         },
-        'n' => handle.write_all(b"\n")?,
-        's' => handle.write_all(b" ")?,
+        'n' if !is_interactive => handle.write_all(b"\n")?,
+        's' if !is_interactive => handle.write_all(b" ")?,
         'l' => {
             arr[*pointer] = 125;
             if is_interactive {
-                handle.write_all(b"125")?;
+                handle.write_all(b"> 125")?;
             }
         },
         'i' => {
             *int_mode = true;
             if is_interactive {
-                handle.write_all(b"Int mode enabled")?;
+                handle.write_all(b"> Int mode enabled")?;
             }
         },
         'c' => {
             *int_mode = false;
             if is_interactive {
-                handle.write_all(b"Int mode disabled")?;
+                handle.write_all(b"> Int mode disabled")?;
             }
         },
         'h' if is_interactive => handle.write_all(
-            b"Available commands:
+            b"> Available commands:
 
 e - exit interactive shell
 > - moves pointer right
@@ -166,18 +166,17 @@ e - exit interactive shell
 - - decrements cell
 i - integer output mode (enabled by default)
 c - character output mode
-n - inserts newline
-s - inserts space
 o - prints the contents of the cell to the console
 p - accepts input from the user into the cell
 l - sets cell value to 125
-[] - loop (runs while the cell != 0)
 # - comments the rest of line
 h - prints this message",
         )?,
         _ =>
             if is_interactive {
-                handle.write_all(b"> Unknown command, type `h` to get list of commands")?;
+                handle.write_all(
+                    b"> Unknown command, type `h` to get list of commands, `e` to exit",
+                )?;
             },
     }
     Ok(())

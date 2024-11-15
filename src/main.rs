@@ -22,7 +22,9 @@ fn interactive_shell() -> Result<()> {
         stdin().read_line(&mut input)?;
         let mut input_iter = input.trim().chars();
         if input_iter.clone().count() != 1 {
-            handle.write_all(b"> Can't evaluate this command, type `h` to get list of commands")?;
+            handle.write_all(
+                b"> Can't evaluate this command, type `h` to get list of commands, `e` to exit",
+            )?;
             handle.flush()?;
             continue;
         }
@@ -52,7 +54,7 @@ struct Args {
 }
 
 fn main() -> Result<()> {
-    let (args, mut handle) = (Args::parse(), BufWriter::new(stdout()));
+    let (args, mut handle) = (Args::parse(), BufWriter::new(stdout().lock()));
     let script = match (args.path, args.command) {
         (Some(_), Some(_)) => bail!("only one option must be specified"),
         (None, None) => return interactive_shell(),
