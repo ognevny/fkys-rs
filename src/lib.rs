@@ -105,10 +105,7 @@ pub fn eval_char<W: ?Sized + Write>(
             }
         },
         '<' => {
-            if *pointer == 0 {
-                *pointer = 500;
-            }
-            *pointer -= 1;
+            *pointer = (*pointer + 499) % 500;
             if is_interactive {
                 write!(*handle, "> Now at {}", *pointer)?;
             }
@@ -129,7 +126,11 @@ pub fn eval_char<W: ?Sized + Write>(
             if *int_mode {
                 write!(*handle, "{}", arr[*pointer])?;
             } else {
-                write!(*handle, "{}", char::from_u32(arr[*pointer].unsigned_abs()).unwrap_or(' '))?;
+                write!(
+                    *handle,
+                    "{}",
+                    char::from_u32(arr[*pointer].unsigned_abs()).unwrap_or_default()
+                )?;
             },
         'p' => {
             let mut user_input = String::new();

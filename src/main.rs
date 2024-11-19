@@ -28,7 +28,8 @@ fn interactive_shell() -> Result<()> {
             handle.flush()?;
             continue;
         }
-        let char = input_iter.next().unwrap();
+        // SAFETY: size of iterator checked above
+        let char = unsafe { input_iter.next().unwrap_unchecked() };
         if char == 'e' {
             break;
         }
@@ -58,12 +59,13 @@ fn main() -> Result<()> {
     let script = match (args.path, args.command) {
         (Some(_), Some(_)) => bail!("only one option must be specified"),
         (None, None) => return interactive_shell(),
-        (Some(path), None) => read_to_string(path)?,
+        (Some(path), None) =>
+            read_to_string(path).with_context(|| "failed to read script file")?,
         (None, Some(command)) => command,
     };
 
-    eval(&script, &mut handle)?;
+    eval(&script, &mut handle).with_context(|| "failed ro evaluate script")?;
 
-    handle.flush().with_context(|| "Error: no output shown")?;
+    handle.flush().with_context(|| "no output shown")?;
     Ok(())
 }
