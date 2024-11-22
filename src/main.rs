@@ -59,8 +59,7 @@ fn main() -> Result<()> {
     let script = match (args.path, args.command) {
         (Some(_), Some(_)) => bail!("only one option must be specified"),
         (None, None) => return interactive_shell(),
-        (Some(path), None) =>
-            read_to_string(path).with_context(|| "failed to read script file")?,
+        (Some(path), None) => read_to_string(path).with_context(|| "failed to read script file")?,
         (None, Some(command)) => command,
     };
 
