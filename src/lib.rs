@@ -133,7 +133,7 @@ pub fn eval_char<W: ?Sized + Write>(
                 )?;
             },
         'p' => {
-            let mut user_input = String::new();
+            let mut user_input = String::with_capacity(11);
             stdin().read_line(&mut user_input)?;
             arr[*pointer] = user_input.trim_end().parse()?;
         },

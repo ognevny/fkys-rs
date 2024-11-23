@@ -18,7 +18,7 @@ fn interactive_shell() -> Result<()> {
     loop {
         handle.write_all(b"\n>>> ")?;
         handle.flush()?;
-        let mut input = String::new();
+        let mut input = String::with_capacity(1);
         stdin().read_line(&mut input)?;
         let mut input_iter = input.trim().chars();
         if input_iter.clone().count() != 1 {
