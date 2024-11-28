@@ -11,6 +11,21 @@ use {
     },
 };
 
+/// Arguments passed to interpreter.
+///
+/// There is 2 variants: path to script or script itself (with -c option).
+#[derive(Parser)]
+#[clap(about, version, long_about = None)]
+struct Args {
+    /// A script to evaluate
+    #[clap(short, long, value_name = "COMMAND")]
+    command: Option<String>,
+
+    /// Path to script
+    #[clap(value_name = "FILE")]
+    path: Option<PathBuf>,
+}
+
 /// Run interactive shell
 fn interactive_shell() -> Result<()> {
     let (mut handle, mut arr, mut pointer, mut int_mode) =
@@ -20,8 +35,8 @@ fn interactive_shell() -> Result<()> {
         handle.flush()?;
         let mut input = String::with_capacity(1);
         stdin().read_line(&mut input)?;
-        let mut input_iter = input.trim().chars();
-        if input_iter.clone().count() != 1 {
+        let input = input.trim();
+        if input.len() != 1 {
             handle.write_all(
                 b"> Can't evaluate this command, type `h` to get list of commands, `e` to exit",
             )?;
@@ -29,7 +44,7 @@ fn interactive_shell() -> Result<()> {
             continue;
         }
         // SAFETY: size of iterator checked above
-        let char = unsafe { input_iter.next().unwrap_unchecked() };
+        let char = unsafe { input.chars().next().unwrap_unchecked() };
         if char == 'e' {
             break;
         }
@@ -37,21 +52,6 @@ fn interactive_shell() -> Result<()> {
     }
 
     Ok(())
-}
-
-/// Arguments passed to interpreter.
-///
-/// There is 2 variants: path to script or script itself (with -c option).
-#[derive(Parser)]
-#[clap(about, version, long_about = None)]
-struct Args {
-    /// Path to script
-    #[clap(value_name = "FILE")]
-    path: Option<PathBuf>,
-
-    /// A script to evaluate
-    #[clap(short, long, value_name = "COMMAND")]
-    command: Option<String>,
 }
 
 fn main() -> Result<()> {
