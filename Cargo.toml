@@ -7,7 +7,7 @@ description = "F*cking Kill Yourself lang interpreter written in Rust"
 authors = ["Maksim Bondarenkov"]
 repository = "https://github.com/ognevny/fkys-rs"
 readme = "README.md"
-rust-version = "1.74.1"
+rust-version = "1.79.0"
 
 [dependencies]
 anyhow = "1.0"

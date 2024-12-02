@@ -43,7 +43,7 @@ fn interactive_shell() -> Result<()> {
             handle.flush()?;
             continue;
         }
-        // SAFETY: size of iterator checked above
+        // SAFETY: size of iterator is checked above
         let char = unsafe { input.chars().next().unwrap_unchecked() };
         if char == 'e' {
             break;
