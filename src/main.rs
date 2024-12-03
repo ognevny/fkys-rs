@@ -1,9 +1,11 @@
 //! A CLI for interpreting FKYS script
 
+mod fkys;
+
 use {
     anyhow::{Context as _, Result, bail},
     clap::Parser,
-    fkys_rs::{eval, eval_char},
+    fkys::{eval, eval_char},
     std::{
         fs::read_to_string,
         io::{BufWriter, Write as _, stdin, stdout},

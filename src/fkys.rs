@@ -1,7 +1,7 @@
 //! A FKYS library for parsing scripts
 
 use {
-    anyhow::{Result, bail},
+    anyhow::Result,
     std::io::{Write, stdin},
 };
 
@@ -89,7 +89,7 @@ pub fn eval<W: ?Sized + Write>(script: &str, handle: &mut W) -> Result<()> {
 /// Panics when conversion from [`u32`] to [`char`] fails
 ///
 /// [`Result`]: anyhow::Result
-pub fn eval_char<W: ?Sized + Write>(
+pub(crate) fn eval_char<W: ?Sized + Write>(
     char: char,
     handle: &mut W,
     arr: &mut [i32; 500],
@@ -97,9 +97,6 @@ pub fn eval_char<W: ?Sized + Write>(
     int_mode: &mut bool,
     is_interactive: bool,
 ) -> Result<()> {
-    if *pointer >= 500 {
-        bail!("pointer must be in range 0..=499");
-    }
     match char {
         '>' => {
             // SAFETY: pointer is much less than usize::MAX
@@ -117,24 +114,34 @@ pub fn eval_char<W: ?Sized + Write>(
         },
         '+' => {
             // SAFETY: pointer is in range of 0..=499
-            unsafe { *arr.get_unchecked_mut(*pointer) += 1; }
+            unsafe {
+                *arr.get_unchecked_mut(*pointer) += 1;
+            }
             if is_interactive {
                 // SAFETY: pointer is in range of 0..=499
-                unsafe { write!(*handle, "> {}", arr.get_unchecked(*pointer))?; }
+                unsafe {
+                    write!(*handle, "> {}", arr.get_unchecked(*pointer))?;
+                }
             }
         },
         '-' => {
             // SAFETY: pointer is in range of 0..=499
-            unsafe { *arr.get_unchecked_mut(*pointer) -= 1; }
+            unsafe {
+                *arr.get_unchecked_mut(*pointer) -= 1;
+            }
             if is_interactive {
                 // SAFETY: pointer is in range of 0..=499
-                unsafe { write!(*handle, "> {}", arr.get_unchecked(*pointer))?; }
+                unsafe {
+                    write!(*handle, "> {}", arr.get_unchecked(*pointer))?;
+                }
             }
         },
         'o' =>
             if *int_mode {
                 // SAFETY: pointer is in range of 0..=499
-                unsafe { write!(*handle, "{}", arr.get_unchecked(*pointer))?; }
+                unsafe {
+                    write!(*handle, "{}", arr.get_unchecked(*pointer))?;
+                }
             } else {
                 write!(
                     *handle,
@@ -146,13 +153,17 @@ pub fn eval_char<W: ?Sized + Write>(
             let mut user_input = String::with_capacity(11);
             stdin().read_line(&mut user_input)?;
             // SAFETY: pointer is in range of 0..=499
-            unsafe { *arr.get_unchecked_mut(*pointer) = user_input.trim_end().parse()?; }
+            unsafe {
+                *arr.get_unchecked_mut(*pointer) = user_input.trim_end().parse()?;
+            }
         },
         'n' if !is_interactive => handle.write_all(b"\n")?,
         's' if !is_interactive => handle.write_all(b" ")?,
         'l' => {
             // SAFETY: pointer is in range of 0..=499
-            unsafe { *arr.get_unchecked_mut(*pointer) = 125; }
+            unsafe {
+                *arr.get_unchecked_mut(*pointer) = 125;
+            }
             if is_interactive {
                 handle.write_all(b"> 125")?;
             }
