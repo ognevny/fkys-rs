@@ -3,8 +3,9 @@
 mod fkys;
 
 use {
-    anyhow::{Context as _, Result, bail},
+    anyhow::{Context as _, Result},
     clap::Parser,
+    core::hint::unreachable_unchecked,
     fkys::{eval, eval_char},
     std::{
         fs::read_to_string,
@@ -20,11 +21,11 @@ use {
 #[clap(about, version, long_about = None)]
 struct Args {
     /// A script to evaluate
-    #[clap(short, long, value_name = "COMMAND")]
+    #[clap(short, long, exclusive = true, value_name = "COMMAND")]
     command: Option<String>,
 
     /// Path to script
-    #[clap(value_name = "FILE")]
+    #[clap(exclusive = true, value_name = "FILE")]
     path: Option<PathBuf>,
 }
 
@@ -36,7 +37,15 @@ fn interactive_shell() -> Result<()> {
         handle.write_all(b"\n>>> ")?;
         handle.flush()?;
         let mut input = String::with_capacity(1);
-        stdin().read_line(&mut input)?;
+        match stdin().read_line(&mut input) {
+            Ok(0) => return Ok(()),
+            Err(_) => {
+                handle.write_all(b"> Failed to read input, try again")?;
+                handle.flush()?;
+                continue;
+            },
+            _ => (),
+        };
         let input = input.trim();
         if input.len() != 1 {
             handle.write_all(
@@ -48,21 +57,20 @@ fn interactive_shell() -> Result<()> {
         // SAFETY: size of iterator is checked above
         let char = unsafe { input.chars().next().unwrap_unchecked() };
         if char == 'e' {
-            break;
+            return Ok(());
         }
         eval_char(char, &mut handle, &mut arr, &mut pointer, &mut int_mode, true)?;
     }
-
-    Ok(())
 }
 
 fn main() -> Result<()> {
     let (args, mut handle) = (Args::parse(), BufWriter::new(stdout().lock()));
     let script = match (args.path, args.command) {
-        (Some(_), Some(_)) => bail!("only one option must be specified"),
         (None, None) => return interactive_shell(),
         (Some(path), None) => read_to_string(path).with_context(|| "failed to read script file")?,
         (None, Some(command)) => command,
+        // SAFETY: clap handles this case
+        (Some(_), Some(_)) => unsafe { unreachable_unchecked() },
     };
 
     eval(&script, &mut handle).with_context(|| "failed ro evaluate script")?;

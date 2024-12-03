@@ -49,7 +49,8 @@ pub fn eval<W: ?Sized + Write>(script: &str, handle: &mut W) -> Result<()> {
                                 false,
                             )?;
                         }
-                        if arr[pointer] == 0 {
+                        // SAFETY: pointer is in range 0..=499
+                        if *unsafe { arr.get_unchecked(pointer) } == 0 {
                             break;
                         }
                     }
@@ -100,14 +101,14 @@ pub(crate) fn eval_char<W: ?Sized + Write>(
     match char {
         '>' => {
             // SAFETY: pointer is much less than usize::MAX
-            *pointer = unsafe { (pointer.unchecked_add(1)) % 500 };
+            *pointer = unsafe { pointer.unchecked_add(1) % 500 };
             if is_interactive {
                 write!(*handle, "> Now at {}", *pointer)?;
             }
         },
         '<' => {
             // SAFETY: pointer is much less than usize::MAX
-            *pointer = unsafe { (pointer.unchecked_add(499)) % 500 };
+            *pointer = unsafe { pointer.unchecked_add(499) % 500 };
             if is_interactive {
                 write!(*handle, "> Now at {}", *pointer)?;
             }
@@ -143,15 +144,29 @@ pub(crate) fn eval_char<W: ?Sized + Write>(
                     write!(*handle, "{}", arr.get_unchecked(*pointer))?;
                 }
             } else {
-                write!(
-                    *handle,
-                    "{}",
-                    char::from_u32(arr[*pointer].unsigned_abs()).unwrap_or_default()
-                )?;
+                // SAFETY: pointer is in range of 0..=499
+                unsafe {
+                    write!(
+                        *handle,
+                        "{}",
+                        char::from_u32(arr.get_unchecked(*pointer).unsigned_abs())
+                            .unwrap_or_default()
+                    )?;
+                }
             },
         'p' => {
             let mut user_input = String::with_capacity(11);
-            stdin().read_line(&mut user_input)?;
+            loop {
+                match stdin().read_line(&mut user_input) {
+                    Ok(0) => return Ok(()),
+                    Err(_) => {
+                        handle.write_all(b"> Failed to read input, try again")?;
+                        handle.flush()?;
+                        continue;
+                    },
+                    _ => break,
+                };
+            }
             // SAFETY: pointer is in range of 0..=499
             unsafe {
                 *arr.get_unchecked_mut(*pointer) = user_input.trim_end().parse()?;
