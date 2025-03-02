@@ -137,7 +137,7 @@ pub(crate) fn eval_char<W: ?Sized + Write>(
                 }
             }
         },
-        'o' =>
+        'o' => {
             if *int_mode {
                 // SAFETY: pointer is in range of 0..=499
                 unsafe {
@@ -153,7 +153,8 @@ pub(crate) fn eval_char<W: ?Sized + Write>(
                             .unwrap_or_default()
                     )?;
                 }
-            },
+            }
+        },
         'p' => {
             let mut user_input = String::with_capacity(11);
             loop {

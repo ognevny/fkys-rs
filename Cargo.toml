@@ -1,13 +1,13 @@
 [package]
 name = "fkys-rs"
 version = "0.4.1"
-edition = "2021"
+edition = "2024"
 license = "WTFPL"
 description = "F*cking Kill Yourself lang interpreter written in Rust"
 authors = ["Maksim Bondarenkov"]
 repository = "https://github.com/ognevny/fkys-rs"
 readme = "README.md"
-rust-version = "1.79.0"
+rust-version = "1.85.0"
 include = ["/src", "/LICENSE", "/Cargo.toml", "/Cargo.lock", "/README.md"]
 
 [dependencies]
