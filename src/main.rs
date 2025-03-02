@@ -67,14 +67,14 @@ fn main() -> Result<()> {
     let (args, mut handle) = (Args::parse(), BufWriter::new(stdout().lock()));
     let script = match (args.path, args.command) {
         (None, None) => return interactive_shell(),
-        (Some(path), None) => read_to_string(path).with_context(|| "failed to read script file")?,
+        (Some(path), None) => read_to_string(path).context("failed to read script file")?,
         (None, Some(command)) => command,
         // SAFETY: clap handles this case
-        (Some(_), Some(_)) => unsafe { unreachable_unchecked() },
+        (Some(_), Some(_)) => const { unsafe { unreachable_unchecked() } },
     };
 
-    eval(&script, &mut handle).with_context(|| "failed ro evaluate script")?;
+    eval(&script, &mut handle).context("failed ro evaluate script")?;
 
-    handle.flush().with_context(|| "no output shown")?;
+    handle.flush().context("no output shown")?;
     Ok(())
 }
