@@ -70,7 +70,7 @@ fn main() -> Result<()> {
         (Some(path), None) => read_to_string(path).context("failed to read script file")?,
         (None, Some(command)) => command,
         // SAFETY: clap handles this case
-        (Some(_), Some(_)) => const { unsafe { unreachable_unchecked() } },
+        (Some(_), Some(_)) => unsafe { unreachable_unchecked() },
     };
 
     eval(&script, &mut handle).context("failed ro evaluate script")?;
