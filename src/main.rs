@@ -31,8 +31,7 @@ struct Args {
 
 /// Run interactive shell
 fn interactive_shell() -> Result<()> {
-    let (mut handle, mut arr, mut pointer, mut int_mode) =
-        (BufWriter::new(stdout().lock()), [0; 500], 0, true);
+    let (mut handle, mut arr, mut pointer, mut int_mode) = (BufWriter::new(stdout().lock()), [0; 500], 0, true);
     loop {
         handle.write_all(b"\n>>> ")?;
         handle.flush()?;
@@ -48,9 +47,7 @@ fn interactive_shell() -> Result<()> {
         };
         let input = input.trim();
         if input.len() != 1 {
-            handle.write_all(
-                b"> Can't evaluate this command, type `h` to get list of commands, `e` to exit",
-            )?;
+            handle.write_all(b"> Can't evaluate this command, type `h` to get list of commands, `e` to exit")?;
             handle.flush()?;
             continue;
         }
@@ -70,10 +67,10 @@ fn main() -> Result<()> {
         (Some(path), None) => read_to_string(path).context("failed to read script file")?,
         (None, Some(command)) => command,
         // SAFETY: clap handles this case
-        (Some(_), Some(_)) => unsafe { unreachable_unchecked() },
+        _ => unsafe { unreachable_unchecked() },
     };
 
-    eval(&script, &mut handle).context("failed ro evaluate script")?;
+    eval(&script, &mut handle).context("failed to evaluate script")?;
 
     handle.flush().context("no output shown")?;
     Ok(())

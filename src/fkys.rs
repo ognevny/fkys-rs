@@ -28,8 +28,7 @@ use {
 /// ); // writes `46 31 44` into handle
 /// ```
 pub fn eval<W: ?Sized + Write>(script: &str, handle: &mut W) -> Result<()> {
-    let (mut code, mut collecting, mut arr, mut pointer, mut int_mode) =
-        (String::new(), false, [0; 500], 0, true);
+    let (mut code, mut collecting, mut arr, mut pointer, mut int_mode) = (String::new(), false, [0; 500], 0, true);
     for line in script.lines() {
         for char in line.chars() {
             match char {
@@ -40,14 +39,7 @@ pub fn eval<W: ?Sized + Write>(script: &str, handle: &mut W) -> Result<()> {
                     collecting = false;
                     loop {
                         for char_code in code.chars() {
-                            eval_char(
-                                char_code,
-                                handle,
-                                &mut arr,
-                                &mut pointer,
-                                &mut int_mode,
-                                false,
-                            )?;
+                            eval_char(char_code, handle, &mut arr, &mut pointer, &mut int_mode, false)?;
                         }
                         // SAFETY: pointer is in range 0..=499
                         if *unsafe { arr.get_unchecked(pointer) } == 0 {
@@ -78,8 +70,7 @@ pub fn eval<W: ?Sized + Write>(script: &str, handle: &mut W) -> Result<()> {
 /// - array which is used to write things (fixed at [`i32`; 500])
 /// - pointer, which must be at range `0..=499`
 /// - int mode, which defines whether integers or chars are printed to stdout
-/// - is interactive, which enables interactive shell mode (example of such is implemented in
-///   `fkysoxide` binary)
+/// - is interactive, which enables interactive shell mode (example of such is implemented in `fkysoxide` binary)
 ///
 /// # Errors
 ///
@@ -149,25 +140,14 @@ pub(crate) fn eval_char<W: ?Sized + Write>(
                     write!(
                         *handle,
                         "{}",
-                        char::from_u32(arr.get_unchecked(*pointer).unsigned_abs())
-                            .unwrap_or_default()
+                        char::from_u32(arr.get_unchecked(*pointer).unsigned_abs()).unwrap_or_default()
                     )?;
                 }
             }
         },
         'p' => {
             let mut user_input = String::with_capacity(11);
-            loop {
-                match stdin().read_line(&mut user_input) {
-                    Ok(0) => return Ok(()),
-                    Err(_) => {
-                        handle.write_all(b"> Failed to read input, try again")?;
-                        handle.flush()?;
-                        continue;
-                    },
-                    _ => break,
-                };
-            }
+            stdin().read_line(&mut user_input)?;
             // SAFETY: pointer is in range of 0..=499
             unsafe {
                 *arr.get_unchecked_mut(*pointer) = user_input.trim_end().parse()?;
@@ -214,9 +194,7 @@ h - prints this message",
         )?,
         _ =>
             if is_interactive {
-                handle.write_all(
-                    b"> Unknown command, type `h` to get list of commands, `e` to exit",
-                )?;
+                handle.write_all(b"> Unknown command, type `h` to get list of commands, `e` to exit")?;
             },
     }
     Ok(())

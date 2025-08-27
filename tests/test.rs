@@ -1,5 +1,3 @@
-#![cfg(feature = "cli")]
-
 const EXE: &str = env!("CARGO_BIN_EXE_fkysoxide");
 const ROOT: &str = env!("CARGO_MANIFEST_DIR");
 
